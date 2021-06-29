@@ -17,10 +17,10 @@ module.exports = {
         var data = JSON.parse(Fs.readFileSync(path));
 
         var scoreStr = "";
-        data.sort((a, b) => a.score - b.score);
+        data.sort((a, b) => b.score - a.score);
         data.slice(0, Math.min(10, data.length))
             .forEach((score, i) => {
-                scoreStr += `${i + 1}) <@${score.id}> - ${score.score}`;
+                scoreStr += `${i + 1}) <@${score.id}> - ${score.score}\n`;
             });
         message.channel.send(
             new Discord.MessageEmbed()
