@@ -4,8 +4,8 @@ const Discord = require('discord.js');
 var looping = false;
 
 const gameConstants = {
-    perfect: 300,
-    bad: 700
+    perfect: 700,
+    bad: 1000
 }
 
 module.exports = {
@@ -118,7 +118,7 @@ module.exports = {
                             playing[message.author.id].previousMsg = msg;
                         })
                     },
-                    playing[message.author.id].songBeats[0].time - deltaTime - 100
+                    playing[message.author.id].songBeats[0].time - deltaTime - 100 - playing[message.author.id].botLatency
                 );
 
             }
@@ -131,7 +131,7 @@ module.exports = {
 
         return true;
     },
-    add(message, name) {
+    add(message, name, latency) {
         var songBeats = JSON.parse(Fs.readFileSync(`C:/Users/phone/OneDrive/Desktop/DiscordBeatz/resource/assets/${name}/beats.json`));
         playing[message.author.id] = {
             name: name,
@@ -143,7 +143,8 @@ module.exports = {
             previousMsg: undefined,
             beats: songBeats.length,
             lastLatency: 0,
-            guild: message.guild.id
+            guild: message.guild.id,
+            botLatency: latency
         }
 
         message.channel.send(
@@ -160,7 +161,7 @@ module.exports = {
             ).then(msg => {
                 playing[message.author.id].previousMsg = msg;
             })
-        }, playing[message.author.id].songBeats[0].time - 100);
+        }, playing[message.author.id].songBeats[0].time - 100 - playing[message.author.id].botLatency);
         if (!looping) this.gameLoop(); // start the game loop if it doesn't exist yet
     },
     forceFinish(id) {
@@ -228,7 +229,7 @@ module.exports = {
                             playing[id].previousMsg = msg;
                         })
                     },
-                    playing[id].songBeats[0].time - deltaTime - 100
+                    playing[id].songBeats[0].time - deltaTime - 100 - playing[id].botLatency
                 );
             }
         }
