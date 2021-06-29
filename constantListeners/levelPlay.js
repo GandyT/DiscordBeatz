@@ -36,7 +36,7 @@ module.exports = {
                     )
                 }
             } else {
-                if (deltaTime - nextBeat.time < -800) {
+                if (deltaTime - nextBeat.time < -playing[message.author.id].botLatency) {
                     /* NOTE LOCKED */
                     message.author.send(
                         new Discord.MessageEmbed()
@@ -92,15 +92,7 @@ module.exports = {
 
             if (!playing[message.author.id].songBeats.length) {
                 /* GAME ENDED */
-                message.channel.send(
-                    new Discord.MessageEmbed()
-                        .setTitle("**END**")
-                        .addField("**STATUS**", "```Game Done```")
-                        .addField("**SCORE**", "```" + playing[message.author.id].score + "```")
-                        .addField("**ACCURACY**", "```" + ((playing[message.author.id].score / (playing[message.author.id].beats * 300)) * 100).toFixed(2) + "%```")
-                );
-                message.channel.send(``);
-                delete playing[message.author.id];
+                this.forceFinish(message.author.id);
             } else {
                 /* REGULAR GAME LOGIC */
                 var beatTime = playing[message.author.id].songBeats[0].time;
@@ -166,13 +158,33 @@ module.exports = {
     },
     forceFinish(id) {
         if (playing[id]) {
+            var acc = ((playing[id].score / (playing[id].beats * 300)) * 100).toFixed(2);
             playing[id].message.channel.send(
                 new Discord.MessageEmbed()
                     .setTitle("**END**")
                     .addField("**STATUS**", "```Game Done```")
                     .addField("**SCORE**", "```" + playing[id].score + "```")
-                    .addField("**ACCURACY**", "```" + ((playing[id].score / (playing[id].beats * 300)) * 100).toFixed(2) + "%```")
+                    .addField("**ACCURACY**", "```" + acc + "%```")
             );
+
+            var lbPath = `C:/Users/phone/OneDrive/Desktop/DiscordBeatz/resource/assets/${playing[id].name}/lb.json`;
+
+            var data = [];
+
+            if (Fs.existsSync(lbPath)) {
+                data = JSON.parse(Fs.readFileSync(lbPath));
+            }
+
+            var userPrev = data.find(lbPos => lbPos.id == id);
+            if (userPrev && userPrev.score < playing[id].score) {
+                data = data.filter(lbPos => lbPos.id != id);
+                data.push({ id: id, score: playing[id].score, accuracy: acc });
+            } else if (!userPrev) {
+                data.push({ id: id, score: playing[id].score, accuracy: acc });
+            }
+
+            Fs.writeFileSync(lbPath, JSON.stringify(data));
+
             delete playing[id];
         }
     },
