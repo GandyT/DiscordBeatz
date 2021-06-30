@@ -224,6 +224,8 @@ module.exports = {
                 // delete expired beat
                 playing[id].songBeats.shift();
 
+                if (!playing[id].songBeats.length) return this.forceFinish(id);
+
                 var beatTime = playing[id].songBeats[0].time;
 
                 /* SEND NEW KEY*/
