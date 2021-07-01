@@ -116,3 +116,5 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# enter secret.json and users.json so that no ids get leaked on next commit
