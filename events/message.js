@@ -17,7 +17,7 @@ module.exports = {
             message: message,
             args: message.content
                 .toLowerCase()
-                .substr(Config.length)
+                .substr(PREFIX.length)
                 .split(" "),
             client: client
         };
