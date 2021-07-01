@@ -6,8 +6,9 @@ module.exports = {
         if (songs[message.author.id]) {
             var key = message.content.slice(0, 1);
 
-            // if key isn't an actual key of the game, just put some random one
-            if (key != "z" && key != "x") key = "z";
+            // original: if (key != "z" && key != "x") key = "z";
+            // the regex is case insensitive
+            if (!key.match(/(z|x)/i)) key = 'z';
 
             // date now minus date when the message was initialized
             var latency = new Date().getTime() - message.createdTimestamp;
@@ -27,8 +28,9 @@ module.exports = {
         }
     },
     finish(id) {
-        var savePath = `C:/Users/phone/OneDrive/Desktop/DiscordBeatz/resource/assets/${songs[id].name}/beats.json`;
-        Fs.writeFileSync(savePath, JSON.stringify(songs[id].beats));
+        var savePath = `./resource/assets/${songs[id].name}/beats.json`;
+        // the null, 2 makes it format it nicely :^) https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
+        Fs.writeFileSync(savePath, JSON.stringify(songs[id].beats, null, 2));
         delete songs[id];
     }
 }

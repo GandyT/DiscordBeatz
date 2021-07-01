@@ -1,9 +1,7 @@
 const levelCreation = require("../constantListeners/levelCreation.js");
 const Discord = require('discord.js');
-var officialMappers = [
-    "782217735013662782",
-    "347533768883437569"
-];
+// you might want to hide this
+var officialMappers = require('../resource/modules/secret.json').officialMappers;
 
 module.exports = {
     names: ["register"],
@@ -13,24 +11,21 @@ module.exports = {
         if (!args[1]) return message.channel.send("Please specify a song name");
         if (!officialMappers.includes(message.author.id)) return message.channel.send("You do not have permission to map songs");
 
-        var songName = args.slice(1).join(" ");
+        var songName = args.slice(1).join(" ").toLowerCase();
 
         message.channel.send(
             new Discord.MessageEmbed()
-                .setDescription("```" + `Starting Mapping for ${songName}\nReminder: Space Out Notes` + "```")
+                .setDescription(`\`\`\`Starting Mapping for ${songName}\nReminder: Space Out Notes\`\`\``)
         );
 
-        message.member.voice.channel.join()
-            .then(connection => {
-
-                var path = `C:/Users/phone/OneDrive/Desktop/DiscordBeatz/resource/assets/${songName}/${songName}.mp3`;
-                levelCreation.add(message.author.id, songName);
-                connection.play(path)
-                    .on("finish", () => {
-                        connection.disconnect();
-                        message.channel.send(`${songName} successfully mapped`);
-                        levelCreation.finish(message.author.id);
-                    });
+        let connection = await message.member.voice.channel.join();
+        var path = `./resource/assets/${songName}/${songName}.mp3`;
+        levelCreation.add(message.author.id, songName);
+        connection.play(path)
+            .on("finish", () => {
+                connection.disconnect();
+                message.channel.send(`${songName} successfully mapped`);
+                levelCreation.finish(message.author.id);
             });
     }
 }

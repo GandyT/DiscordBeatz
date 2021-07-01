@@ -1,7 +1,4 @@
-const Config = require("./resource/modules/config.js");
-
 const Fs = require("fs");
-
 const Discord = require("discord.js");
 const client = new Discord.Client();
 
@@ -19,7 +16,7 @@ Fs.readdir("commands", (err, files) => {
     files.forEach(file => {
         client.commands.push(require(`./commands/${file}`));
     })
-});;
+});
 
 Fs.readdir("events", (err, files) => {
     if (err) throw new Error("Cannot Read events");
@@ -29,6 +26,4 @@ Fs.readdir("events", (err, files) => {
     })
 });
 
-
-
-client.login(Config.TOKEN);
+client.login(require('./resource/modules/secret.json').token);
