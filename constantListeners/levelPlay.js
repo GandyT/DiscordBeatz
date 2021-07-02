@@ -1,111 +1,105 @@
 var playing = {}
 const Fs = require('fs');
 const Discord = require('discord.js');
+const UserJSON = require('../resource/modules/users.json');
 var looping = false;
 
 const gameConstants = require('../resource/modules/config.json').gameConstants;
 
 module.exports = {
     async execute(message) {
-        if (playing[message.author.id]) {
-            var deltaTime = new Date().getTime() - playing[message.author.id].start;
-            var latency = new Date().getTime() - message.createdTimestamp;
-            playing[message.author.id].lastLatency = latency;
+        let game = playing[message.author.id];
+        if (!game) return;
 
-            deltaTime -= latency; // this is the true deltaTime
+        var deltaTime = new Date().getTime() - game.start;
+        var latency = new Date().getTime() - message.createdTimestamp;
+        game.lastLatency = latency;
+
+        deltaTime -= latency; // this is the true deltaTime
 
 
-            var nextBeat = playing[message.author.id].songBeats.shift();
+        var nextBeat = game.songBeats.shift();
 
-            if (nextBeat.key != message.content.toLowerCase()) {
+        if (nextBeat.key != message.content.toLowerCase()) {
+            message.author.send(
+                new Discord.MessageEmbed()
+                    .setDescription("```MISSED: ❌```")
+                    .setTimestamp()
+            )/*then(msg => game.msgs.push(msg))*/.catch(() => console.log(''));
+            // MISSED
+            game.previousMsg?.edit(
+                new Discord.MessageEmbed()
+                    .setTitle("**❌ MISSED ❌**")
+                    .setDescription(game.previousMsg.embeds[0].description)
+                    .setColor("#e74c3c")
+            )
+        } else {
+            if (deltaTime - nextBeat.time < -game.botLatency) {
+                /* NOTE LOCKED */
+                    return message.author.send(
+                    new Discord.MessageEmbed()
+                        .setDescription("```NOTELOCKED```")
+                        .setTimestamp()
+                )/*then(msg => game.msgs.push(msg))*/.catch(() => console.log(''));
+            }
+
+            var accDiff = Math.abs(deltaTime - nextBeat.time); // how off was the beat the player hit?
+
+            if (accDiff < gameConstants.perfect) {
+                game.score += 300;
+                // edit previous message based on hit or not
+                game.previousMsg?.edit(
+                    new Discord.MessageEmbed()
+                        .setTitle("**300pts**")
+                        .setDescription(game.previousMsg.embeds[0].description)
+                        .setColor("#2ecc71")
+                )
+
+            } else if (accDiff < gameConstants.bad) {
+                game.score += 100;
+                game.previousMsg?.edit(
+                    new Discord.MessageEmbed()
+                        .setTitle("**100pts**")
+                        .setDescription(game.previousMsg.embeds[0].description)
+                        .setColor("#f1c40f")
+                )
+            } else {
                 message.author.send(
                     new Discord.MessageEmbed()
                         .setDescription("```MISSED: ❌```")
                         .setTimestamp()
-                ).catch(() => console.log(''));
-                if (playing[message.author.id].previousMsg) {
-                    // MISSED
-                    playing[message.author.id].previousMsg.edit(
+                )/*then(msg => game.msgs.push(msg))*/.catch(() => console.log(''));
+                // MISSED
+                game.previousMsg.edit(
+                    new Discord.MessageEmbed()
+                        .setTitle("**❌ MISSED ❌**")
+                        .setDescription(game.previousMsg.embeds[0].description)
+                        .setColor("#e74c3c")
+                )
+            }
+        }
+        /* GAME ENDED */
+        if (!game.songBeats) this.forceFinish(message.author.id);
+        else {
+            /* REGULAR GAME LOGIC */
+            var beatTime = game.songBeats[0]?.time;
+            setTimeout(
+                async () => {
+                    if (!game) return;
+                    // beat already passed. no need to send the message again
+                    if (beatTime != game.songBeats[0].time) return;
+
+                    let msg = await message.channel.send(
                         new Discord.MessageEmbed()
-                            .setTitle("**❌ MISSED ❌**")
-                            .setDescription(playing[message.author.id].previousMsg.embeds[0].description)
-                            .setColor("#e74c3c")
+                            .setTitle("**KEY**")
+                            .setDescription(game.songBeats[0].key)
                     )
-                }
-            } else {
-                if (deltaTime - nextBeat.time < -playing[message.author.id].botLatency) {
-                    /* NOTE LOCKED */
-                        return message.author.send(
-                        new Discord.MessageEmbed()
-                            .setDescription("```NOTELOCKED```")
-                            .setTimestamp()
-                    ).catch(() => console.log(''));
-                }
+                    // game.msgs.push(msg)
+                    game.previousMsg = msg;
+                },
+                game.songBeats[0]?.time - deltaTime - 100 - game.botLatency
+            );
 
-                var accDiff = Math.abs(deltaTime - nextBeat.time); // how off was the beat the player hit?
-
-                if (accDiff < gameConstants.perfect) {
-                    playing[message.author.id].score += 300;
-                    if (playing[message.author.id].previousMsg) {
-                        // edit previous message based on hit or not
-                        playing[message.author.id].previousMsg.edit(
-                            new Discord.MessageEmbed()
-                                .setTitle("**300pts**")
-                                .setDescription(playing[message.author.id].previousMsg.embeds[0].description)
-                                .setColor("#2ecc71")
-                        )
-                    }
-
-                } else if (accDiff < gameConstants.bad) {
-                    playing[message.author.id].score += 100;
-                    if (playing[message.author.id].previousMsg) {
-
-                        playing[message.author.id].previousMsg.edit(
-                            new Discord.MessageEmbed()
-                                .setTitle("**100pts**")
-                                .setDescription(playing[message.author.id].previousMsg.embeds[0].description)
-                                .setColor("#f1c40f")
-                        )
-                    }
-                } else {
-                    message.author.send(
-                        new Discord.MessageEmbed()
-                            .setDescription("```MISSED: ❌```")
-                            .setTimestamp()
-                    ).catch(() => console.log(''));
-                    if (playing[message.author.id].previousMsg) {
-                        // MISSED
-                        playing[message.author.id].previousMsg.edit(
-                            new Discord.MessageEmbed()
-                                .setTitle("**❌ MISSED ❌**")
-                                .setDescription(playing[message.author.id].previousMsg.embeds[0].description)
-                                .setColor("#e74c3c")
-                        )
-                    }
-                }
-            }
-            /* GAME ENDED */
-            if (!playing[message.author.id].songBeats) this.forceFinish(message.author.id);
-            else {
-                /* REGULAR GAME LOGIC */
-                var beatTime = playing[message.author.id].songBeats[0].time;
-                setTimeout(
-                    async () => {
-                        if (!playing[message.author.id]) return;
-                        // beat already passed. no need to send the message again
-                        if (beatTime != playing[message.author.id].songBeats[0].time) return;
-
-                        let msg = await message.channel.send(
-                            new Discord.MessageEmbed()
-                                .setTitle("**KEY**")
-                                .setDescription(playing[message.author.id].songBeats[0].key)
-                        )
-                        playing[message.author.id].previousMsg = msg;
-                    },
-                    playing[message.author.id].songBeats[0].time - deltaTime - 100 - playing[message.author.id].botLatency
-                );
-
-            }
         }
     },
     guildValid(guildId) {
@@ -129,13 +123,14 @@ module.exports = {
             beats: songBeats.length,
             lastLatency: 0,
             guild: message.guild.id,
-            botLatency: latency
+            botLatency: latency,
+            // msgs: []
         }
 
         message.channel.send(
             new Discord.MessageEmbed()
                 .setDescription(`\`\`\`Starting: ${((playing[message.author.id].songBeats[0].time - 100) / 1000).toFixed(2)}s\`\`\``)
-        )
+        )//.then(msg => playing[message.author.id].msgs.push(msg))
 
         setTimeout(async () => {
             if (!playing[message.author.id]) return;
@@ -143,39 +138,49 @@ module.exports = {
                 new Discord.MessageEmbed()
                     .setTitle("**KEY**")
                     .setDescription(playing[message.author.id].songBeats[0].key)
-            )
+            )//.then(msg => playing[message.author.id].msgs.push(msg))
             playing[message.author.id].previousMsg = msg;
         }, playing[message.author.id].songBeats[0].time - 100 - playing[message.author.id].botLatency);
         if (!looping) this.gameLoop(); // start the game loop if it doesn't exist yet
     },
     forceFinish(id) {
-        if (playing[id]) {
-            var acc = ((playing[id].score / (playing[id].beats * 300)) * 100).toFixed(2);
-            playing[id].message.channel.send(
-                new Discord.MessageEmbed()
-                    .setTitle("**END**")
-                    .addField("**STATUS**", "```Game Done```")
-                    .addField("**SCORE**", `\`\`\`${playing[id].score}\`\`\``)
-                    .addField("**ACCURACY**", `\`\`\`${acc}%\`\`\``)
-            );
+        if (!playing[id]) return;
+        var acc = ((playing[id].score / (playing[id].beats * 300)) * 100).toFixed(2);
+        playing[id].message.channel.send(
+            new Discord.MessageEmbed()
+                .setTitle("**END**")
+                .addField("**STATUS**", "```Game Done```")
+                .addField("**SCORE**", `\`\`\`${playing[id].score}\`\`\``)
+                .addField("**ACCURACY**", `\`\`\`${acc}%\`\`\``)
+        );
 
-            var lbPath = `./resource/assets/${playing[id].name}/lb.json`;
+        // playing[id].msgs.forEach(msg => msg.delete());
+            
+        let songObj = UserJSON[id][playing[id].name];
+        UserJSON[id].gamesPlayed++;
+        songObj.gamesPlayed++;
+        UserJSON[id].totalPoints += playing[id].score;
+        songObj.totalPoints += playing[id].score;
 
-            var data = [];
+        var lbPath = `./resource/assets/${playing[id].name}/lb.json`;
 
-            if (Fs.existsSync(lbPath)) data = JSON.parse(Fs.readFileSync(lbPath));
+        var data = [];
 
-            var userPrev = data.find(lbPos => lbPos.id == id);
-            if (userPrev && userPrev.score < playing[id].score) {
-                data = data.filter(lbPos => lbPos.id != id);
-                data.push({ id: id, score: playing[id].score, accuracy: acc });
-            } else if (!userPrev) data.push({ id: id, score: playing[id].score, accuracy: acc });
+        if (Fs.existsSync(lbPath)) data = JSON.parse(Fs.readFileSync(lbPath));
 
-        // the null, 2 makes it format it nicely :^) https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
-            Fs.writeFileSync(lbPath, JSON.stringify(data, null, 2));
+        var userPrev = data.find(lbPos => lbPos.id == id);
+        if (userPrev && userPrev.score < playing[id].score) {
+            // new highscore
+            data = data.filter(lbPos => lbPos.id != id);
+            data.push({ id: id, score: playing[id].score, accuracy: acc });
+            UserJSON[id].highscoresSet++;
+            songObj.highscoresSet++;
+        } else if (!userPrev) data.push({ id: id, score: playing[id].score, accuracy: acc });
 
-            delete playing[id];
-        }
+        Fs.writeFileSync(lbPath, JSON.stringify(data, null, 2));
+        Fs.writeFileSync('./resource/modules/users.json', JSON.stringify(UserJSON, null, 2));
+
+        delete playing[id];
     },
     gameLoop() {
         looping = true;
@@ -208,7 +213,7 @@ module.exports = {
                     new Discord.MessageEmbed()
                         .setDescription("```NO-HIT: ❌```")
                         .setTimestamp()
-                ).catch(() => console.log(''))
+                )/*then(msg => playing[id].msgs.push(msg)).*/.catch(() => console.log(''))
 
                 // delete expired beat
                 playing[id].songBeats.shift();
@@ -229,6 +234,9 @@ module.exports = {
                                 .setTitle("**KEY**")
                                 .setDescription(playing[id].songBeats[0].key)
                         )
+
+                        // playing[id].msgs.push(msg);
+
                         playing[id].previousMsg = msg;
                     },
                     playing[id].songBeats[0].time - deltaTime - 100 - playing[id].botLatency
