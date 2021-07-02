@@ -3,14 +3,16 @@ const { PREFIX } = require("../resource/modules/config.json");
 const Fs = require("fs");
 
 module.exports = {
-    names: ["play"],
+    names: ["play"], description: 'starts a game',
+    usage: 'play <song name (type [pref]songs for a complete list of available songs)>\nexample: [pref]play faded',
+    notes: 'you have to be in a voice channel where the bot can speak in order to start a game',
     async execute(Env) {
         const { message, client, args } = Env;
 
         if (!args[1]) return message.channel.send("Please specify a song name");
         if (!message.channel.name.startsWith("discordbeatz")) return message.channel.send("Please create a channel called \"discordbeatz\" in order to play");
 
-        var songName = args.slice(1).join(" ").toLowerCase();
+        var songName = args.slice(1).join(" ");
 
         let memberVc = message.member.voice?.channel;
         if (!memberVc) return message.channel.send("You must be in a voice channel to play");
