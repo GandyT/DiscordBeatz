@@ -6,7 +6,7 @@ module.exports = {
         if (newState.channelID) return;
         // user left a vc
         levelPlay.forceFinish(newState.id);
-        var vc = newState.guild.channels.cache.get(oldMember.channelID);
+        var vc = newState.guild.channels.cache.get(oldState.channelID);
         vc?.leave();
     }
 }
