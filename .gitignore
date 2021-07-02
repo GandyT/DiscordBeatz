@@ -118,3 +118,6 @@ dist
 .pnp.*
 
 # enter secret.json and users.json so that no ids get leaked on next commit
+
+package-lock.json
+package.json
