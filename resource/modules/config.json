@@ -1,7 +1,7 @@
 {
     "PREFIX": "b.",
     "gameConstants": {
-        "perfect": 700,
-        "bad": 1000
+        "perfect": 400,
+        "bad": 700
     }
 }

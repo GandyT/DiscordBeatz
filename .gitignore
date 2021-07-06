@@ -121,3 +121,5 @@ dist
 
 package-lock.json
 package.json
+
+resource/modules/secret.json

@@ -1,7 +1,6 @@
 var playing = {}
 const Fs = require('fs');
 const Discord = require('discord.js');
-const UserJSON = require('../resource/modules/users.json');
 var looping = false;
 
 const gameConstants = require('../resource/modules/config.json').gameConstants;
@@ -36,7 +35,7 @@ module.exports = {
         } else {
             if (deltaTime - nextBeat.time < -game.botLatency) {
                 /* NOTE LOCKED */
-                    return message.author.send(
+                return message.author.send(
                     new Discord.MessageEmbed()
                         .setDescription("```NOTELOCKED```")
                         .setTimestamp()
@@ -155,7 +154,19 @@ module.exports = {
         );
 
         // playing[id].msgs.forEach(msg => msg.delete());
-            
+
+        var UserJSON = JSON.parse(Fs.readFileSync("./resource/modules/users.json"));
+
+        if (!UserJSON[id]) UserJSON[id] = {
+            gamesPlayed: 0,
+            totalPoints: 0
+        };
+
+        if (!UserJSON[id][playing[id].name]) UserJSON[id][playing[id].name] = {
+            gamesPlayed: 0,
+            totalPoints: 0
+        }
+
         let songObj = UserJSON[id][playing[id].name];
         UserJSON[id].gamesPlayed++;
         songObj.gamesPlayed++;
