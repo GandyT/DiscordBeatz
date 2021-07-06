@@ -6,8 +6,6 @@ module.exports = {
         if (songs[message.author.id]) {
             var key = message.content.slice(0, 1);
 
-            // original: if (key != "z" && key != "x") key = "z";
-            // the regex is case insensitive
             if (!key.match(/(z|x)/i)) key = 'z';
 
             // date now minus date when the message was initialized
@@ -29,7 +27,6 @@ module.exports = {
     },
     finish(id) {
         var savePath = `./resource/assets/${songs[id].name}/beats.json`;
-        // the null, 2 makes it format it nicely :^) https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
         Fs.writeFileSync(savePath, JSON.stringify(songs[id].beats, null, 2));
         delete songs[id];
     }

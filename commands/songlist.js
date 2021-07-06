@@ -8,13 +8,13 @@ function songLength(name)
 }
 
 module.exports = {
-    names: ["songlist", 'songs'],
+    names: ["songlist", 'songs'], description: 'displays a list of available songs to play',
     async execute(Env) {
         const { message } = Env;
 
-        let dirs = Fs.readdirSync("./resource/assets");
         let songList = [];
-        dirs.forEach(dir => songList.push(`${songLength(dir)}`));
+        Fs.readdirSync("./resource/assets")
+            .forEach(dir => songList.push(`${songLength(dir)}`));
         message.channel.send(
             new Discord.MessageEmbed()
                 .setTitle("**SONGS**")

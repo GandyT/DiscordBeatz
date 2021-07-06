@@ -4,14 +4,15 @@ const Discord = require('discord.js');
 var officialMappers = require('../resource/modules/secret.json').officialMappers;
 
 module.exports = {
-    names: ["register"],
+    names: ["register"], description: 'allows official mappers to create a new song',
+    notes: 'you must be an official mapper to register a new song',
     async execute(Env) {
         const { message, client, args } = Env;
 
         if (!args[1]) return message.channel.send("Please specify a song name");
         if (!officialMappers.includes(message.author.id)) return message.channel.send("You do not have permission to map songs");
 
-        var songName = args.slice(1).join(" ").toLowerCase();
+        var songName = args.slice(1).join(" ");
 
         message.channel.send(
             new Discord.MessageEmbed()

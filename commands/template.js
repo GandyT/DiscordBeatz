@@ -1,5 +1,5 @@
 module.exports = {
-    names: ["template"],
+    names: ["template"], hide: true,
     async execute(Env) {
         const { message, client, args } = Env;
     }
