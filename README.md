@@ -1,4 +1,4 @@
-<img src="logo.png" width="1500" height="500"></img>
+![logo](https://cdn.discordapp.com/attachments/792779369843130418/861798993080352788/dbeatz.png)
 # DiscordBeatz
 ![gh commits](https://img.shields.io/github/last-commit/GandyT/DiscordBeatz)
 
