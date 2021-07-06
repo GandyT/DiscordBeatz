@@ -12,4 +12,4 @@
 
 ## todo
 >### more songs coming soon, i think?
->### refactor all the code (session manager, custom file module for less confusing pathing, remove the discord.js-search dependency, improved listeners)
+>### refactor all the code (session manager, custom file module for less confusing pathing, remove the discord.js-search dependency, improved listeners, game logic in separate files. next note indicator, better mapping system)
