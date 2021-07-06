@@ -3,7 +3,7 @@
 
 ![gh commits](https://img.shields.io/github/last-commit/GandyT/DiscordBeatz)
 
-![logo]('./logo.png')
+![logo]('https://raw.githubusercontent.com/GandyT/DiscordBeatz/master/logo.png')
 ###### ~~discord osu~~
 
 ## features
